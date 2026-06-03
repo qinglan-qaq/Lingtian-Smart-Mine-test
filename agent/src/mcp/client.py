@@ -26,22 +26,23 @@ class MCPClientManager:
 
     用法:
         manager = MCPClientManager([
-            MCPServerConfig(name="mining-news", args=["-m", "mining_news_mcp.server"]),
-            MCPServerConfig(name="mineral-pdf", args=["-m", "mineral_pdf_mcp.server"]),
-            MCPServerConfig(name="lme-price",  args=["-m", "lme_price_mcp.server"]),
+            MCPServerConfig(name="mining-news", args=["-m", "mining_news_mcp"]),
+            MCPServerConfig(name="mineral-pdf", args=["-m", "mineral_pdf_mcp"]),
+            MCPServerConfig(name="lme-price",  args=["-m", "lme_price_mcp"]),
         ])
         await manager.connect_all()
-        result = await manager.call_tool("search_mining_news", {"query": "lithium"})
+        result = await manager.call_tool("search", {"query": "lithium"})
         await manager.disconnect_all()
     """
 
     # 工具名 → MCP Server 名 的路由表
+    # 工具名与各 MCP Server 的 @mcp.tool() 名称严格一致
     TOOL_ROUTING: dict[str, str] = {
-        "search_mining_news": "mining-news",
-        "fetch_article":      "mining-news",
-        "extract_resources":  "mineral-pdf",
-        "get_price":          "lme-price",
-        "get_price_trend":    "lme-price",
+        "search":            "mining-news",   # mining-news-mcp: search()
+        "fetch_article":     "mining-news",   # mining-news-mcp: fetch_article()
+        "extract_resources": "mineral-pdf",   # mineral-pdf-mcp: extract_resources()
+        "get_price":         "lme-price",     # lme-price-mcp: get_price()
+        "get_trend":         "lme-price",     # lme-price-mcp: get_trend()
     }
 
     def __init__(self, servers: list[MCPServerConfig]):
@@ -125,7 +126,7 @@ class MCPClientManager:
 
     def _mock_result(self, tool_name: str, arguments: dict) -> str:
         """生成 mock 返回数据，方便开发调试"""
-        if tool_name == "search_mining_news":
+        if tool_name == "search":
             query = arguments.get("query", "")
             return json.dumps({
                 "articles": [
@@ -168,7 +169,7 @@ class MCPClientManager:
                 "date": arguments.get("date", "2026-06-03"),
             }, ensure_ascii=False)
 
-        if tool_name == "get_price_trend":
+        if tool_name == "get_trend":
             commodity = arguments.get("commodity", "")
             days = arguments.get("days", 30)
             return json.dumps({

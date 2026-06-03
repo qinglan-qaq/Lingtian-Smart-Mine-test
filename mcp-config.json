@@ -2,27 +2,30 @@
   "mcpServers": {
     "mining-news": {
       "command": "python",
-      "args": ["-m", "mining_news_mcp.server"],
+      "args": ["-m", "mining_news_mcp"],
       "cwd": "./mcp-servers/mining-news-mcp",
       "env": {
-        "NEWSAPI_KEY": "${NEWSAPI_KEY}"
+        "NEWS_API_KEY": "${NEWS_API_KEY}",
+        "PYTHONPATH": "./src"
       }
     },
     "mineral-pdf": {
       "command": "python",
-      "args": ["-m", "mineral_pdf_mcp.server"],
+      "args": ["-m", "mineral_pdf_mcp"],
       "cwd": "./mcp-servers/mineral-pdf-mcp",
       "env": {
-        "PDF_PARSER_API_KEY": "${PDF_PARSER_API_KEY}"
+        "PDF_PARSER_API_KEY": "${PDF_PARSER_API_KEY}",
+        "PYTHONPATH": "./src"
       }
     },
     "lme-price": {
       "command": "python",
-      "args": ["-m", "lme_price_mcp.server"],
+      "args": ["-m", "lme_price_mcp"],
       "cwd": "./mcp-servers/lme-price-mcp",
       "env": {
         "LME_API_KEY": "${LME_API_KEY}",
-        "LME_API_BASE_URL": "${LME_API_BASE_URL}"
+        "LME_API_BASE_URL": "${LME_API_BASE_URL}",
+        "PYTHONPATH": "./src"
       }
     }
   }

@@ -25,17 +25,17 @@ def get_config() -> Config:
             {
                 "name": "mining-news",
                 "command": "python",
-                "args": ["-m", "mining_news_mcp.server"],
+                "args": ["-m", "mining_news_mcp"],
             },
             {
                 "name": "mineral-pdf",
                 "command": "python",
-                "args": ["-m", "mineral_pdf_mcp.server"],
+                "args": ["-m", "mineral_pdf_mcp"],
             },
             {
                 "name": "lme-price",
                 "command": "python",
-                "args": ["-m", "lme_price_mcp.server"],
+                "args": ["-m", "lme_price_mcp"],
             },
         ],
     )

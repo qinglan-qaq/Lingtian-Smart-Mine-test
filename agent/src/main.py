@@ -5,8 +5,8 @@
 编排 3 个 MCP Server 生成日报简报。
 
 支持两种运行模式：
-  - 普通模式: python -m agent.src.main -p "..."
-  - 流式模式: python -m agent.src.main -p "..." --stream
+    - 普通模式: python -m agent.src.main -p "..."
+    - 流式模式: python -m agent.src.main -p "..." --stream
 """
 
 import argparse
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 # ── SSE 事件编码 ────────────────────────────────────────────
 
+
 def _sse_event(event: str, data: dict | str) -> str:
     """将事件编码为 SSE 格式"""
     payload = json.dumps(data, ensure_ascii=False) if isinstance(data, dict) else data
@@ -36,6 +37,7 @@ def _sse_event(event: str, data: dict | str) -> str:
 
 
 # ── 核心运行逻辑 ────────────────────────────────────────────
+
 
 async def run(prompt: str, stream: bool = False):
     """
@@ -97,12 +99,12 @@ async def _run_streaming(graph, initial_state: AgentState, config: dict) -> None
     SSE 流式模式 — 使用 astream_events() 实时输出每个节点的进展。
 
     输出事件类型:
-      - phase: 阶段切换 (think / execute / evaluate)
-      - think_token: Think 节点 LLM 流式 token
-      - tool_call: 工具调用开始
-      - tool_result: 工具调用结果
-      - report: 最终简报
-      - error: 错误信息
+        - phase: 阶段切换 (think / execute / evaluate)
+        - think_token: Think 节点 LLM 流式 token
+        - tool_call: 工具调用开始
+        - tool_result: 工具调用结果
+        - report: 最终简报
+        - error: 错误信息
     """
     print(_sse_event("phase", {"phase": "start", "message": "Agent 启动"}))
 
@@ -115,12 +117,21 @@ async def _run_streaming(graph, initial_state: AgentState, config: dict) -> None
 
         # ── 节点进入/退出 ──
         if kind == "on_chain_start" and name in ("think", "execute", "evaluate"):
-            phase_label = {"think": "规划中...", "execute": "执行工具...", "evaluate": "评估结果..."}
-            print(_sse_event("phase", {
-                "phase": name,
-                "message": phase_label.get(name, name),
-                "iteration": iteration,
-            }))
+            phase_label = {
+                "think": "规划中...",
+                "execute": "执行工具...",
+                "evaluate": "评估结果...",
+            }
+            print(
+                _sse_event(
+                    "phase",
+                    {
+                        "phase": name,
+                        "message": phase_label.get(name, name),
+                        "iteration": iteration,
+                    },
+                )
+            )
 
         # ── LLM 流式 token（Think 节点） ──
         if kind == "on_chat_model_stream" and name == "think":
@@ -133,22 +144,36 @@ async def _run_streaming(graph, initial_state: AgentState, config: dict) -> None
             output = data.get("output", {})
             results = output.get("execution_results", [])
             for r in results:
-                print(_sse_event("tool_result", {
-                    "tool": r.get("tool_name", ""),
-                    "error": r.get("error"),
-                    "result_preview": str(r.get("result", ""))[:500],
-                }))
+                print(
+                    _sse_event(
+                        "tool_result",
+                        {
+                            "tool": r.get("tool_name", ""),
+                            "error": r.get("error"),
+                            "result_preview": str(r.get("result", ""))[:500],
+                        },
+                    )
+                )
 
         # ── 评估完成 ──
         if kind == "on_chain_end" and name == "evaluate":
             output = data.get("output", {})
             if output.get("is_sufficient"):
-                print(_sse_event("phase", {"phase": "done", "message": "信息充足，生成简报"}))
+                print(
+                    _sse_event(
+                        "phase", {"phase": "done", "message": "信息充足，生成简报"}
+                    )
+                )
             else:
-                print(_sse_event("phase", {
-                    "phase": "loop",
-                    "message": f"信息不足: {output.get('missing_info', '')}",
-                }))
+                print(
+                    _sse_event(
+                        "phase",
+                        {
+                            "phase": "loop",
+                            "message": f"信息不足: {output.get('missing_info', '')}",
+                        },
+                    )
+                )
                 iteration += 1
 
         # ── 最终输出 ──
@@ -176,18 +201,21 @@ def _print_result(result: dict) -> None:
 
 # ── CLI ────────────────────────────────────────────────────
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="矿权日报 Agent — LangGraph ReAct (Plan→Execute→Evaluate)",
     )
     parser.add_argument(
-        "--prompt", "-p",
+        "--prompt",
+        "-p",
         type=str,
         default="给我生成一份关于 Pilbara 锂矿的今日简报",
         help="输入提示词",
     )
     parser.add_argument(
-        "--stream", "-s",
+        "--stream",
+        "-s",
         action="store_true",
         default=False,
         help="启用 SSE 流式输出模式",
