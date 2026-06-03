@@ -1,70 +1,106 @@
 """
-Agent 工具定义 — 封装 MCP Client 调用
+Agent 工具 Schema 定义
+
+在 Think 节点中通过 prompt 告知 LLM 可用工具。
+实际执行由 Executor 节点通过 MCPClientManager 完成。
 """
-
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-# MCP 工具调用将通过 agent/graph.py 中的 ToolNode 动态绑定
-# 此处定义工具的 schema 描述
 
 TOOL_DEFINITIONS = [
     {
         "name": "search_mining_news",
-        "description": "搜索矿业相关新闻",
+        "description": (
+            "搜索矿业相关新闻。"
+            "适用于获取与特定矿种、矿区或公司相关的近期新闻。"
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "搜索关键词"},
-                "days": {"type": "integer", "description": "搜索最近 N 天", "default": 7},
+                "query": {
+                    "type": "string",
+                    "description": "搜索关键词（中英文均可），如 'Pilbara lithium'、'铜矿 价格'",
+                },
+                "days": {
+                    "type": "integer",
+                    "description": "搜索最近 N 天的新闻，默认 7",
+                },
             },
             "required": ["query"],
         },
     },
     {
         "name": "fetch_article",
-        "description": "获取新闻文章全文",
+        "description": (
+            "获取新闻文章全文内容。"
+            "当需要了解某篇新闻的详细内容时调用。"
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "url": {"type": "string", "description": "文章 URL"},
+                "url": {
+                    "type": "string",
+                    "description": "新闻文章的 URL",
+                },
             },
             "required": ["url"],
         },
     },
     {
         "name": "extract_resources",
-        "description": "从 PDF 提取 NI 43-101 标准的 Indicated/Inferred 储量数据",
+        "description": (
+            "从 PDF 报告中提取 NI 43-101 标准的矿产资源和储量数据。"
+            "提取 Indicated（控制资源量）和 Inferred（推断资源量）的吨位与品位。"
+            "适用于已有 NI 43-101 技术报告的矿区分析。"
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "pdf_url": {"type": "string", "description": "PDF 报告的 URL"},
+                "pdf_url": {
+                    "type": "string",
+                    "description": "NI 43-101 技术报告的 PDF URL",
+                },
             },
             "required": ["pdf_url"],
         },
     },
     {
         "name": "get_price",
-        "description": "获取指定矿产的当前价格",
+        "description": (
+            "获取指定矿产的当前市场价格。"
+            "支持的矿产: lithium(锂), copper(铜), gold(金), silver(银), "
+            "iron-ore(铁矿石), nickel(镍), cobalt(钴), rare-earth(稀土), uranium(铀)。"
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "commodity": {"type": "string", "description": "矿产名称，如 lithium, copper, gold"},
-                "date": {"type": "string", "description": "日期 YYYY-MM-DD，默认今天"},
+                "commodity": {
+                    "type": "string",
+                    "description": "矿产名称（英文小写），如 lithium, copper, gold",
+                },
+                "date": {
+                    "type": "string",
+                    "description": "价格日期，格式 YYYY-MM-DD。不填则返回最新价格",
+                },
             },
             "required": ["commodity"],
         },
     },
     {
         "name": "get_price_trend",
-        "description": "获取指定矿产的价格趋势",
+        "description": (
+            "获取指定矿产的近期价格趋势数据。"
+            "返回日级价格序列和涨跌幅，用于走势分析。"
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "commodity": {"type": "string", "description": "矿产名称"},
-                "days": {"type": "integer", "description": "趋势天数", "default": 30},
+                "commodity": {
+                    "type": "string",
+                    "description": "矿产名称（英文小写）",
+                },
+                "days": {
+                    "type": "integer",
+                    "description": "回溯天数，默认 30",
+                },
             },
             "required": ["commodity"],
         },
