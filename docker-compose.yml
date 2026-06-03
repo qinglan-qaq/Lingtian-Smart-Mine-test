@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  mining-news-mcp:
+    build:
+      context: ./mcp-servers/mining-news-mcp
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  mineral-pdf-mcp:
+    build:
+      context: ./mcp-servers/mineral-pdf-mcp
+    env_file:
+      - .env
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+
+  lme-price-mcp:
+    build:
+      context: ./mcp-servers/lme-price-mcp
+    env_file:
+      - .env
+    ports:
+      - "8003:8003"
+    restart: unless-stopped
+
+  agent:
+    build:
+      context: ./agent
+    env_file:
+      - .env
+    depends_on:
+      - mining-news-mcp
+      - mineral-pdf-mcp
+      - lme-price-mcp
+    stdin_open: true
+    tty: true

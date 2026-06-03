@@ -1,0 +1,29 @@
+{
+  "mcpServers": {
+    "mining-news": {
+      "command": "python",
+      "args": ["-m", "mining_news_mcp.server"],
+      "cwd": "./mcp-servers/mining-news-mcp",
+      "env": {
+        "NEWSAPI_KEY": "${NEWSAPI_KEY}"
+      }
+    },
+    "mineral-pdf": {
+      "command": "python",
+      "args": ["-m", "mineral_pdf_mcp.server"],
+      "cwd": "./mcp-servers/mineral-pdf-mcp",
+      "env": {
+        "PDF_PARSER_API_KEY": "${PDF_PARSER_API_KEY}"
+      }
+    },
+    "lme-price": {
+      "command": "python",
+      "args": ["-m", "lme_price_mcp.server"],
+      "cwd": "./mcp-servers/lme-price-mcp",
+      "env": {
+        "LME_API_KEY": "${LME_API_KEY}",
+        "LME_API_BASE_URL": "${LME_API_BASE_URL}"
+      }
+    }
+  }
+}

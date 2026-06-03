@@ -1,0 +1,9 @@
+[project]
+name = "mining-news-mcp"
+version = "0.1.0"
+description = "MCP Server — 矿业新闻聚合 (NewsAPI)"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"

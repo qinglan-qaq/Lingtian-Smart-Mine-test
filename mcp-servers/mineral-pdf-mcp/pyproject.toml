@@ -1,0 +1,9 @@
+[project]
+name = "mineral-pdf-mcp"
+version = "0.1.0"
+description = "MCP Server — NI 43-101 矿产储量 PDF 解析"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"

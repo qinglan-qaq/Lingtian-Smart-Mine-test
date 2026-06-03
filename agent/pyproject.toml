@@ -1,0 +1,9 @@
+[project]
+name = "lingtian-agent"
+version = "0.1.0"
+description = "矿权日报 Agent — LangGraph ReAct 编排"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
