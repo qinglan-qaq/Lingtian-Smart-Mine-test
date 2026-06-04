@@ -1,58 +1,54 @@
-# 🚀 5 分钟快速启动
+# 🚀 快速启动
 
 ## 前置条件
 
 - Python 3.11+
-- Docker & Docker Compose（可选）
-- 有效的 API Key（NewsAPI / LME / LLM）
+- Docker & Docker Compose
+- NewsAPI Key（[newsapi.org/register](https://newsapi.org/register)）
+- LLM API Key（OpenAI / DeepSeek 兼容）
 
-## 方式一：Docker Compose（推荐）
+## 方式一：Docker Compose
 
 ```bash
-# 1. 配置环境变量
+# 1. 配置
 cp .env.example .env
-# 编辑 .env 填入真实 API Key
+# 编辑 .env → 填入 NEWS_API_KEY + LLM_API_KEY
 
-# 2. 启动所有服务
+# 2. 一键启动
 docker-compose up -d
 
 # 3. 运行 Agent
-docker-compose run agent python -m agent.src.main \
-  --prompt "给我生成一份关于 Pilbara 锂矿的今日简报"
+docker-compose run agent python -m src.main \
+  -p "给我生成一份关于 Pilbara 锂矿的今日简报"
 ```
 
 ## 方式二：本地运行
 
 ```bash
-# 1. 配置环境变量
-cp .env.example .env
-# 编辑 .env 填入真实 API Key
+cp .env.example .env  # 编辑填入 Key
 
-# 2. 安装依赖
+# 安装
 pip install -r agent/requirements.txt
 pip install -r mcp-servers/mining-news-mcp/requirements.txt
 pip install -r mcp-servers/mineral-pdf-mcp/requirements.txt
 pip install -r mcp-servers/lme-price-mcp/requirements.txt
 
-# 3. 分别启动 MCP Server（三个终端）
-python -m mining_news_mcp.server &
-python -m mineral_pdf_mcp.server &
-python -m lme_price_mcp.server &
+# 启动 MCP Server（三个终端，或后台运行）
+cd mcp-servers/mining-news-mcp && PYTHONPATH=src python -m mining_news_mcp &
+cd mcp-servers/mineral-pdf-mcp && PYTHONPATH=src python -m mineral_pdf_mcp &
+cd mcp-servers/lme-price-mcp   && PYTHONPATH=src python -m lme_price_mcp &
 
-# 4. 运行 Agent
-python -m agent.src.main \
-  --prompt "给我生成一份关于 Pilbara 锂矿的今日简报"
+# 运行 Agent
+cd agent && PYTHONPATH=src python -m src.main -p "..."
+
+# 流式模式
+cd agent && PYTHONPATH=src python -m src.main -p "..." --stream
 ```
 
-## 项目结构
+## 验证 MCP Server
 
-```
-├── agent/                  # LangGraph Agent (ReAct)
-├── mcp-servers/
-│   ├── mining-news-mcp/    # 新闻聚合
-│   ├── mineral-pdf-mcp/    # PDF 储量解析
-│   └── lme-price-mcp/      # 价格行情
-├── .env.example            # 环境变量模板
-├── mcp-config.json         # MCP 配置
-└── docker-compose.yml      # 容器编排
+```bash
+# 用 mcp 命令行工具验证（需安装 mcp CLI）
+cd mcp-servers/mining-news-mcp
+PYTHONPATH=src python -m mining_news_mcp --help
 ```
