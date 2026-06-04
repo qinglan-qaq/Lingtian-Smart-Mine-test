@@ -92,7 +92,7 @@ def _try_yf_trend(days: int) -> list[dict] | None:
 # ── Tools ─────────────────────────────────────────────────
 
 @mcp.tool()
-async def get_price(commodity: str, date: str) -> float:
+async def get_price(commodity: str, date: str | None = None) -> float:
     """
     获取指定矿产在指定日期的价格（美元/吨）。
 
@@ -100,8 +100,9 @@ async def get_price(commodity: str, date: str) -> float:
 
     Args:
         commodity: 矿产名称（如 lithium, copper, gold）
-        date: 日期，格式 YYYY-MM-DD
+        date: 日期，格式 YYYY-MM-DD，不填则取最新
     """
+    date = date or datetime.now().strftime("%Y-%m-%d")
     logger.info("[tool:get_price] commodity=%s, date=%s", commodity, date)
 
     yf_price = _try_yf_price(date)

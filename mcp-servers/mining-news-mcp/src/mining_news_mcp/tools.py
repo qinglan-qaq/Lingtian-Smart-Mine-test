@@ -4,6 +4,7 @@ mining-news-mcp 业务逻辑层
 纯函数，不依赖 FastMCP。被 server.py 的 @mcp.tool() 装饰器调用。
 """
 
+import asyncio
 import logging
 from typing import Any
 
@@ -15,18 +16,19 @@ from .news_api import MiningNewsClient
 logger = logging.getLogger(__name__)
 
 # ── 常量 ─────────────────────────────────────────────────
-ARTICLE_MAX_LENGTH = 5000   # fetch_article 最大返回字符数
-REQUEST_TIMEOUT = 15.0       # HTTP 请求超时（秒）
+ARTICLE_MAX_LENGTH = 5000
+REQUEST_TIMEOUT = 15.0
 USER_AGENT = "MiningDailyBot/1.0 (compatible; mining-news-mcp)"
 
 
 # ── search ───────────────────────────────────────────────
 
-def search_news(query: str, days: int = 7) -> list[dict[str, Any]]:
+async def search_news(query: str, days: int = 7) -> list[dict[str, Any]]:
     """
     搜索矿业新闻。
 
-    对 NewsAPI 的封装，返回 Agent 友好的 dict 列表。
+    NewsAPI SDK 是同步的，通过 asyncio.to_thread() 放入线程池执行，
+    避免阻塞 FastMCP 的事件循环。
 
     Args:
         query: 搜索关键词（中英文均可）
@@ -37,7 +39,11 @@ def search_news(query: str, days: int = 7) -> list[dict[str, Any]]:
         出错时返回 [{"error": "..."}]
     """
     logger.info("search_news: query='%s', days=%d", query, days)
+    return await asyncio.to_thread(_search_news_sync, query, days)
 
+
+def _search_news_sync(query: str, days: int) -> list[dict[str, Any]]:
+    """search_news 的同步实现，在线程池中运行"""
     try:
         client = MiningNewsClient()
         result = client.search(query, days=days)

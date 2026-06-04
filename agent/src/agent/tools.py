@@ -1,15 +1,11 @@
 """
-Agent 工具定义 — 静态 schema + MCP 动态加载
+Agent 工具定义 — 静态 schema，供 prompt 生成和 MCP 路由使用。
 
-- TOOL_DEFINITIONS: 静态 schema，供 prompt 生成
-- load_mcp_tools(): 通过 langchain-mcp 连接远程 MCP Server
-- get_tool_map(): 构建 {tool_name: callable} 映射供 Executor 使用
+工具名与各 MCP Server 的 @mcp.tool() 名称严格一致。
+实际执行由 Executor 节点通过 MCPClientManager 完成。
 """
 
-import logging
 from typing import Any
-
-logger = logging.getLogger(__name__)
 
 # ── 静态工具 Schema ──────────────────────────────────────
 
@@ -57,7 +53,7 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
                 "commodity": {"type": "string", "description": "矿产名称（英文小写）"},
                 "date": {"type": "string", "description": "日期 YYYY-MM-DD，不填则最新"},
             },
-            "required": ["commodity"],
+            "required": ["commodity", "date"],
         },
     },
     {
@@ -75,94 +71,14 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 ]
 
 
-# ── 工具名称 → (MCP Server, Tool 元数据) 路由 ─────────────
+# ── 工具 → MCP Server 路由 ───────────────────────────────
 
-TOOL_ROUTING: dict[str, tuple[str, dict]] = {}
+TOOL_ROUTING: dict[str, str] = {}
 for _td in TOOL_DEFINITIONS:
     _name = _td["name"]
     if _name in ("search", "fetch_article"):
-        TOOL_ROUTING[_name] = ("mining-news", _td)
+        TOOL_ROUTING[_name] = "mining-news"
     elif _name == "extract_resources":
-        TOOL_ROUTING[_name] = ("mineral-pdf", _td)
+        TOOL_ROUTING[_name] = "mineral-pdf"
     else:
-        TOOL_ROUTING[_name] = ("lme-price", _td)
-
-
-# ── langchain-mcp 工具加载 ───────────────────────────────
-
-async def load_mcp_tools(
-    server_configs: list[dict[str, Any]],
-) -> dict[str, Any]:
-    """
-    通过 langchain-mcp 连接远程 MCP Server 并加载工具。
-
-    Args:
-        server_configs: [{"name": "...", "command": "...", "args": [...]}, ...]
-
-    Returns:
-        {tool_name: LangChain BaseTool}
-    """
-    try:
-        from langchain_mcp import MultiServerMCPClient
-    except ImportError:
-        logger.debug("langchain-mcp 未安装，跳过 MCP 工具加载")
-        return {}
-
-    mcp_config: dict[str, dict] = {}
-    for srv in server_configs:
-        mcp_config[srv["name"]] = {
-            "transport": "stdio",
-            "command": srv.get("command", "python"),
-            "args": srv.get("args", []),
-        }
-
-    try:
-        client = MultiServerMCPClient(mcp_config)
-        tools = await client.get_tools()
-        tool_map = {t.name: t for t in tools}
-        logger.info("langchain-mcp 加载 %d 个工具: %s", len(tool_map), list(tool_map.keys()))
-        return tool_map
-    except Exception as exc:
-        logger.warning("langchain-mcp 连接失败: %s", exc)
-        return {}
-
-
-# ── tool_map 构建 ────────────────────────────────────────
-
-async def get_tool_map(
-    config: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """
-    构建 {tool_name: callable} 映射。
-
-    优先从 langchain-mcp 加载真实工具，回退到 MCPClientManager mock。
-
-    Args:
-        config: 运行时 config（含 configurable.mcp_manager 和 configurable.mcp_servers）
-
-    Returns:
-        {"search": BaseTool, "fetch_article": BaseTool, ...}
-    """
-    cfg = (config or {}).get("configurable", {})
-    mcp_manager = cfg.get("mcp_manager")
-
-    # 路径1: langchain-mcp
-    if cfg.get("mcp_servers"):
-        lc_tools = await load_mcp_tools(cfg["mcp_servers"])
-        if lc_tools:
-            return lc_tools
-
-    # 路径2: MCPClientManager (fallback)
-    if mcp_manager is not None:
-        from functools import partial
-
-        tool_map = {}
-        for name, (server, _td) in TOOL_ROUTING.items():
-            async def _call(name=name, server=server):
-                return await mcp_manager.call_tool(name, {})
-
-            tool_map[name] = partial(mcp_manager.call_tool, tool_name=name)
-        return tool_map
-
-    logger.warning("无可用的 MCP 工具加载路径，tool_map 为空")
-    return {}
+        TOOL_ROUTING[_name] = "lme-price"

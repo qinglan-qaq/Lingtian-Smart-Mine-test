@@ -57,7 +57,7 @@ async def search(query: str, days: int = 7) -> list[dict[str, Any]]:
     if days < 1 or days > 30:
         return [{"error": f"days 必须在 1-30 之间，收到: {days}"}]
 
-    return search_news(query.strip(), days)
+    return await search_news(query.strip(), days)
 
 
 # ── Tool: fetch_article ─────────────────────────────────────

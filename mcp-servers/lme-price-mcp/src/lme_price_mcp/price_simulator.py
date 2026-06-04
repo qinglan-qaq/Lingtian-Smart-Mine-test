@@ -5,7 +5,7 @@
 """
 
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class PriceSimulator:
@@ -61,7 +61,7 @@ class PriceSimulator:
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         results = []
         for i in range(days - 1, -1, -1):
-            d = today.fromtimestamp(today.timestamp() - i * 86400)
+            d = today - timedelta(days=i)
             price = self.get_price(commodity, d)
             results.append({"date": d.strftime("%Y-%m-%d"), "price": price})
         return results
