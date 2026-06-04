@@ -7,5 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 
+ENV PYTHONPATH=/app/src
+
 EXPOSE 8003
-ENTRYPOINT ["python", "-m", "lme_price_mcp.server"]
+ENTRYPOINT ["python", "-m", "lme_price_mcp"]

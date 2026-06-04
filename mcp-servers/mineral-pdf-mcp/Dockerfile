@@ -7,5 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 
+ENV PYTHONPATH=/app/src
+
 EXPOSE 8002
-ENTRYPOINT ["python", "-m", "mineral_pdf_mcp.server"]
+ENTRYPOINT ["python", "-m", "mineral_pdf_mcp"]

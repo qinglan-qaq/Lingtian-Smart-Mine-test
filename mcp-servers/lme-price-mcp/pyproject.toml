@@ -1,8 +1,23 @@
 [project]
 name = "lme-price-mcp"
 version = "0.1.0"
-description = "MCP Server — LME 矿产价格行情"
+description = "MCP Server — LME 矿产价格行情 (yfinance + 模拟)"
 requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "yfinance>=0.2.40",
+]
+
+[project.scripts]
+lme-price-mcp = "lme_price_mcp.server:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [build-system]
 requires = ["setuptools>=75", "wheel"]
