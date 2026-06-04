@@ -1,4 +1,6 @@
 {
+  "_comment": "MCP Server 配置 — 可直接粘贴到 Claude Desktop / Cursor 的 mcpServers 配置中",
+
   "mcpServers": {
     "mining-news": {
       "command": "python",
@@ -6,7 +8,8 @@
       "cwd": "./mcp-servers/mining-news-mcp",
       "env": {
         "NEWS_API_KEY": "${NEWS_API_KEY}",
-        "PYTHONPATH": "./src"
+        "PYTHONPATH": "./src",
+        "LOG_LEVEL": "INFO"
       }
     },
     "mineral-pdf": {
@@ -14,8 +17,8 @@
       "args": ["-m", "mineral_pdf_mcp"],
       "cwd": "./mcp-servers/mineral-pdf-mcp",
       "env": {
-        "PDF_PARSER_API_KEY": "${PDF_PARSER_API_KEY}",
-        "PYTHONPATH": "./src"
+        "PYTHONPATH": "./src",
+        "LOG_LEVEL": "INFO"
       }
     },
     "lme-price": {
@@ -23,9 +26,8 @@
       "args": ["-m", "lme_price_mcp"],
       "cwd": "./mcp-servers/lme-price-mcp",
       "env": {
-        "LME_API_KEY": "${LME_API_KEY}",
-        "LME_API_BASE_URL": "${LME_API_BASE_URL}",
-        "PYTHONPATH": "./src"
+        "PYTHONPATH": "./src",
+        "LOG_LEVEL": "INFO"
       }
     }
   }
