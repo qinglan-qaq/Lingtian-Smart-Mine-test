@@ -1,41 +1,80 @@
-version: "3.9"
-
 services:
   mining-news-mcp:
     build:
       context: ./mcp-servers/mining-news-mcp
-    env_file:
-      - .env
-    ports:
-      - "8001:8001"
+    image: lingtian/mining-news-mcp:latest
+    container_name: mining-news-mcp
+    environment:
+      - NEWS_API_KEY=${NEWS_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import mining_news_mcp.server"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lingtian-net
     restart: unless-stopped
 
   mineral-pdf-mcp:
     build:
       context: ./mcp-servers/mineral-pdf-mcp
-    env_file:
-      - .env
-    ports:
-      - "8002:8002"
+    image: lingtian/mineral-pdf-mcp:latest
+    container_name: mineral-pdf-mcp
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import mineral_pdf_mcp.server"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lingtian-net
     restart: unless-stopped
 
   lme-price-mcp:
     build:
       context: ./mcp-servers/lme-price-mcp
-    env_file:
-      - .env
-    ports:
-      - "8003:8003"
+    image: lingtian/lme-price-mcp:latest
+    container_name: lme-price-mcp
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import lme_price_mcp.server"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lingtian-net
     restart: unless-stopped
 
   agent:
     build:
       context: ./agent
-    env_file:
-      - .env
+    image: lingtian/agent:latest
+    container_name: lingtian-agent
+    environment:
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.openai.com/v1}
+      - NEWS_API_KEY=${NEWS_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     depends_on:
-      - mining-news-mcp
-      - mineral-pdf-mcp
-      - lme-price-mcp
+      mining-news-mcp:
+        condition: service_healthy
+      mineral-pdf-mcp:
+        condition: service_healthy
+      lme-price-mcp:
+        condition: service_healthy
     stdin_open: true
     tty: true
+    networks:
+      - lingtian-net
+    restart: "no"
+
+networks:
+  lingtian-net:
+    driver: bridge
